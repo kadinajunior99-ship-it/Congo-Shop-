@@ -1,0 +1,9 @@
+{
+  "name": "Congo Shop",
+  "short_name": "Congo Shop",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#087f3e",
+  "theme_color": "#087f3e",
+  "icons": []
+}

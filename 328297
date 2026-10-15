@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<script>
+const SUPABASE_URL = "https://wqcfhczzlyjcgqbdcrdx.supabase.co/rest/v1/";
+const SUPABASE_KEY = "sb_publishable_OOwmftBRo1FwIOau_8SMog_I77Cduob";
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">  
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#087f3e">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Congo Shop 🇨🇬</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f4f6f5;color:#222;padding-bottom:75px}
+header{background:#087f3e;color:white;padding:15px;position:sticky;top:0;z-index:50}
+.header{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:21px;font-weight:bold}
+.search{margin-top:12px}
+.search input{width:100%;padding:12px;border:0;border-radius:10px;outline:none}
+.page{display:none;padding:15px}
+.page.active{display:block}
+h2{margin-bottom:15px}
+.categories{display:flex;gap:8px;overflow-x:auto;padding:10px 0}
+.categories button{border:0;background:white;padding:10px 14px;border-radius:20px;white-space:nowrap}
+.categories button.active{background:#087f3e;color:white}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.product{background:white;border-radius:14px;padding:12px;box-shadow:0 2px 8px #0001}
+.product-image{height:120px;background:#eef3ef;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:55px;overflow:hidden;margin-bottom:10px}
+.product-image img{width:100%;height:100%;object-fit:cover}
+.product h3{font-size:16px;margin-bottom:6px}
+.category{font-size:12px;color:#777;margin-bottom:6px}
+.price{font-weight:bold;color:#087f3e;margin-bottom:10px}
+.product button,.main-btn{width:100%;border:0;padding:11px;border-radius:9px;background:#087f3e;color:white;font-weight:bold;margin-top:6px}
+.secondary{background:#eee;color:#222}
+.danger{background:#d62828!important}
+.edit{background:#1769aa!important}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:65px;background:white;display:flex;justify-content:space-around;align-items:center;box-shadow:0 -2px 10px #0002;z-index:100}
+.nav-btn{border:0;background:none;color:#666;font-size:13px}
+.nav-btn.active{color:#087f3e;font-weight:bold}
+.cart-floating{position:fixed;right:15px;bottom:80px;background:#087f3e;color:white;border:0;border-radius:50px;padding:13px 18px;font-weight:bold;z-index:90;box-shadow:0 3px 10px #0003}
+.modal-bg{display:none;position:fixed;inset:0;background:#0008;z-index:200;padding:20px;overflow:auto}
+.modal{background:white;border-radius:15px;padding:20px;max-width:500px;margin:40px auto}
+.close{float:right;border:0;background:#eee;border-radius:50%;width:30px;height:30px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:13px;font-weight:bold;margin-bottom:5px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:12px;border:1px solid #ddd;border-radius:9px;outline:none}
+textarea{resize:vertical}
+.cart-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid #eee}
+.qty{display:flex;align-items:center;gap:7px}
+.qty button{width:30px;height:30px;border:0;border-radius:7px}
+.profile-card,.order-card{background:white;border-radius:14px;padding:17px;margin-bottom:12px;box-shadow:0 2px 8px #0001}
+.avatar{width:65px;height:65px;background:#087f3e;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:10px}
+.empty{text-align:center;color:#777;padding:25px}
+.radio-box{background:#f4f6f5;padding:12px;border-radius:10px;margin-bottom:8px}
+.small{font-size:13px;color:#777}
+.status{display:inline-block;padding:5px 9px;border-radius:15px;background:#eee;font-size:12px;margin-top:5px}
+hr{border:0;border-top:1px solid #eee;margin:15px 0}
+
+@media(max-width:350px){
+.products{grid-template-columns:1fr}
+}
+@media(min-width:700px){
+.products{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="header">
+<div class="logo">🇨🇬 Congo Shop</div>
+<div id="headerUser">👤</div>
+</div>
+<div class="search">
+<input id="search" placeholder="🔎 Rechercher un produit..." oninput="searchProducts()">
+</div>
+</header>
+
+<section id="homePage" class="page active">
+<h2>🛍️ Produits disponibles</h2>
+
+<div class="categories">
+<button class="active" onclick="filterProducts('Tous',this)">Tous</button>
+<button onclick="filterProducts('Mode',this)">👕 Mode</button>
+<button onclick="filterProducts('Électronique',this)">📱 Électronique</button>
+<button onclick="filterProducts('Maison',this)">🏠 Maison</button>
+</div>
+
+<div id="products" class="products"></div>
+</section>
+
+<section id="sellerPage" class="page">
+
+<h2>🏪 Espace vendeur</h2>
+
+<div id="sellerLoginMessage" class="profile-card">
+<h3>👤 Deviens vendeur</h3>
+<p class="small">Connecte-toi pour publier tes produits.</p>
+<button class="main-btn" onclick="openAuth('login')">🔐 Se connecter</button>
+</div>
+
+<div id="sellerArea" style="display:none">
+
+<div class="profile-card">
+<h3>📊 Tableau de bord</h3>
+<div id="sellerDashboard"></div>
+</div>
+
+<div class="profile-card">
+
+<h3>🚀 Publier un produit</h3>
+
+<div class="form-group">
+<label>Nom du produit</label>
+<input id="sellerName" placeholder="Ex : Casquette Congo">
+</div>
+
+<div class="form-group">
+<label>Description</label>
+<textarea id="sellerDescription" placeholder="Description du produit"></textarea>
+</div>
+
+<div class="form-group">
+<label>Prix FCFA</label>
+<input id="sellerPrice" type="number" placeholder="15000">
+</div>
+
+<div class="form-group">
+<label>Catégorie</label>
+<select id="sellerCategory">
+<option>Mode</option>
+<option>Électronique</option>
+<option>Maison</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Stock</label>
+<input id="sellerStock" type="number" placeholder="10">
+</div>
+
+<div class="form-group">
+<label>Photo</label>
+<input id="sellerImage" type="file" accept="image/*">
+</div>
+
+<button class="main-btn" onclick="createProduct()">🚀 Publier</button>
+
+</div>
+
+<div class="profile-card">
+<h3>📦 Mes produits</h3>
+<div id="sellerProducts"></div>
+</div>
+
+<div class="profile-card">
+<h3>🛍️ Commandes reçues</h3>
+<div id="sellerOrders"></div>
+</div>
+
+</div>
+</section>
+
+<section id="profilePage" class="page">
+
+<h2>👤 Mon profil</h2>
+
+<div id="profileNotConnected" class="profile-card">
+<div class="avatar">👤</div>
+<h3>Bienvenue sur Congo Shop 🇨🇬</h3>
+<p class="small" style="margin:10px 0">Crée ton compte pour acheter et vendre.</p>
+<button class="main-btn" onclick="openAuth('login')">🔐 Se connecter</button>
+<button class="main-btn secondary" onclick="openAuth('register')">✨ Créer un compte</button>
+</div>
+
+<div id="profileConnected" style="display:none">
+
+<div class="profile-card">
+
+<div class="avatar" id="profileAvatar">👤</div>
+
+<h3 id="profileName"></h3>
+<p id="profilePhone"></p>
+<p id="profileRole"></p>
+
+<button class="main-btn" onclick="editProfile()">✏️ Modifier mon profil</button>
+<button class="main-btn" onclick="becomeSeller()">🏪 Devenir vendeur</button>
+<button class="main-btn danger" onclick="logout()">🚪 Déconnexion</button>
+
+</div>
+
+<div class="profile-card">
+<h3>📦 Mes commandes</h3>
+<div id="myOrders"></div>
+</div>
+
+</div>
+</section>
+
+<button class="cart-floating" onclick="openCart()">
+🛒 Panier (<span id="cartCount">0</span>)
+</button>
+
+<div class="bottom-nav">
+
+<button id="homeNav" class="nav-btn active" onclick="showPage('home')">
+🏠<br>Accueil
+</button>
+
+<button id="sellerNav" class="nav-btn" onclick="showPage('seller')">
+🏪<br>Vendre
+</button>
+
+<button id="profileNav" class="nav-btn" onclick="showPage('profile')">
+👤<br>Profil
+</button>
+
+</div>
+
+<div id="productModal" class="modal-bg">
+<div class="modal">
+<button class="close" onclick="closeModal('productModal')">✕</button>
+<div id="productDetails"></div>
+</div>
+</div>
+
+<div id="cartModal" class="modal-bg">
+<div class="modal">
+
+<button class="close" onclick="closeModal('cartModal')">✕</button>
+
+<h2>🛒 Mon panier</h2>
+
+<div id="cartItems"></div>
+
+<hr>
+
+<h3>Total : <span id="cartTotal">0</span> FCFA</h3>
+
+<button class="main-btn" onclick="openOrder()">📦 Passer la commande</button>
+
+</div>
+</div>
+
+<div id="authModal" class="modal-bg">
+<div class="modal">
+
+<button class="close" onclick="closeModal('authModal')">✕</button>
+
+<div id="authContent"></div>
+
+</div>
+</div>
+
+<div id="editProfileModal" class="modal-bg">
+<div class="modal">
+
+<button class="close" onclick="closeModal('editProfileModal')">✕</button>
+
+<h2>✏️ Modifier mon profil</h2>
+
+<div class="form-group">
+<label>Nom complet</label>
+<input id="editName">
+</div>
+
+<div class="form-group">
+<label>Téléphone</label>
+<input id="editPhone" type="tel">
+</div>
+
+<button class="main-btn" onclick="saveProfile()">💾 Enregistrer</button>
+
+</div>
+</div>
+
+<div id="orderStatusModal" class="modal-bg">
+<div class="modal">
+
+<button class="close" onclick="closeModal('orderStatusModal')">✕</button>
+
+<h2>📦 Modifier la commande</h2>
+
+<input type="hidden" id="statusOrderId">
+
+<div class="form-group">
+<label>Statut</label>
+
+<select id="newOrderStatus">
+<option value="pending">⏳ En attente</option>
+<option value="confirmed">✅ Confirmée</option>
+<option value="preparation">👨‍🍳 En préparation</option>
+<option value="shipping">🚚 En livraison</option>
+<option value="delivered">📍 Livrée</option>
+<option value="cancelled">❌ Annulée</option>
+</select>
+
+</div>
+
+<button class="main-btn" onclick="saveOrderStatus()">💾 Enregistrer</button>
+
+</div>
+</div>
+
+<div id="orderModal" class="modal-bg">
+<div class="modal">
+
+<button class="close" onclick="closeModal('orderModal')">✕</button>
+
+<h2>📦 Commander</h2>
+
+<div class="form-group">
+<label>Nom complet</label>
+<input id="orderName">
+</div>
+
+<div class="form-group">
+<label>Téléphone</label>
+<input id="orderPhone">
+</div>
+
+<div class="form-group">
+<label>Adresse</label>
+<textarea id="orderAddress"></textarea>
+</div>
+
+<h3>Total : <span id="orderTotal">0</span> FCFA</h3>
+
+<br>
+
+<div class="radio-box">
+<label>
+<input type="radio" name="payment" value="livraison" checked onchange="togglePaymentFields()">
+💵 À la livraison
+</label>
+</div>
+
+<div class="radio-box">
+<label>
+<input type="radio" name="payment" value="mobile" onchange="togglePaymentFields()">
+📱 Mobile Money
+</label>
+</div>
+
+<div id="mobileMoneyBox" style="display:none">
+
+<div class="form-group">
+<label>Opérateur</label>
+<select id="paymentOperator" onchange="updateMobileMoneyInstructions()">
+<option value="airtel">🔴 Airtel Money</option>
+<option value="mtn">🟡 MTN Mobile Money</option>
+</select>
+</div>
+
+<div class="radio-box" id="mobileMoneyInstructions"></div>
+
+<div class="form-group">
+<label>Référence de la transaction</label>
+<input id="paymentReference" placeholder="Ex : MP240915.1234.A56789">
+</div>
+
+</div>
+
+<button class="main-btn" onclick="confirmOrder()">✅ Confirmer</button>
+
+</div>
+</div>
+
+<div id="successModal" class="modal-bg">
+<div class="modal" style="text-align:center">
+
+<h2>🎉 Commande confirmée !</h2>
+
+<p style="margin:15px 0">Merci pour ta commande 🇨🇬</p>
+
+<h3 id="orderNumber"></h3>
+
+<button class="main-btn"
+onclick="closeModal('successModal');showPage('home')">
+Continuer
+</button>
+
+</div>
+</div>
+
+<script>
+
+/* =====================================
+   DONNÉES
+===================================== */
+
+var users=load("congo_users",[]);
+var products=load("congo_products",[]);
+var orders=load("congo_orders",[]);
+var cart=load("congo_cart",[]);
+var currentUser=load("congo_current_user",null);
+
+/* Numéros marchands Mobile Money — à remplacer par tes vrais numéros */
+var MOBILE_MONEY_NUMBERS={
+airtel:"06 000 00 00",
+mtn:"05 000 00 00"
+};
+
+
+/* =====================================
+   SAUVEGARDE
+===================================== */
+
+function save(key,value){
+try{
+localStorage.setItem(key,JSON.stringify(value));
+}catch(e){
+console.log("Sauvegarde impossible",e);
+}
+}
+
+function load(key,defaultValue){
+try{
+var data=localStorage.getItem(key);
+if(data)return JSON.parse(data);
+}catch(e){
+console.log("Lecture impossible",e);
+}
+return defaultValue;
+}
+
+
+/* =====================================
+   PRODUITS DE BASE
+===================================== */
+
+var defaultProducts=[
+
+{
+id:1,
+name:"T-shirt Congo",
+description:"T-shirt aux couleurs du Congo.",
+price:10000,
+category:"Mode",
+stock:20,
+seller:"Congo Shop",
+image:"",
+icon:"👕"
+},
+
+{
+id:2,
+name:"Chaussures modernes",
+description:"Chaussures modernes et confortables.",
+price:25000,
+category:"Mode",
+stock:15,
+seller:"Congo Shop",
+image:"",
+icon:"👟"
+},
+
+{
+id:3,
+name:"Smartphone",
+description:"Smartphone moderne.",
+price:120000,
+category:"Électronique",
+stock:10,
+seller:"Congo Shop",
+image:"",
+icon:"📱"
+},
+
+{
+id:4,
+name:"Casque Bluetooth",
+description:"Casque Bluetooth sans fil.",
+price:15000,
+category:"Électronique",
+stock:20,
+seller:"Congo Shop",
+image:"",
+icon:"🎧"
+},
+
+{
+id:5,
+name:"Table moderne",
+description:"Table moderne pour maison.",
+price:45000,
+category:"Maison",
+stock:8,
+seller:"Congo Shop",
+image:"",
+icon:"🪑"
+},
+
+{
+id:6,
+name:"Chaise moderne",
+description:"Chaise moderne.",
+price:25000,
+category:"Maison",
+stock:15,
+seller:"Congo Shop",
+image:"",
+icon:"💺"
+}
+
+];
+
+if(!localStorage.getItem("congo_products")){
+products=defaultProducts;
+save("congo_products",products);
+}
+
+
+/* =====================================
+   NAVIGATION
+===================================== */
+
+function showPage(page){
+
+var pages=document.querySelectorAll(".page");
+var navs=document.querySelectorAll(".nav-btn");
+
+for(var i=0;i<pages.length;i++)pages[i].classList.remove("active");
+for(var j=0;j<navs.length;j++)navs[j].classList.remove("active");
+
+if(page==="seller"){
+
+document.getElementById("sellerPage").classList.add("active");
+document.getElementById("sellerNav").classList.add("active");
+
+updateSeller();
+
+}else if(page==="profile"){
+
+document.getElementById("profilePage").classList.add("active");
+document.getElementById("profileNav").classList.add("active");
+
+updateProfile();
+
+}else{
+
+document.getElementById("homePage").classList.add("active");
+document.getElementById("homeNav").classList.add("active");
+
+}
+
+window.scrollTo(0,0);
+}
+
+
+/* =====================================
+   AFFICHAGE PRODUITS
+===================================== */
+
+function renderProducts(){
+
+var container=document.getElementById("products");
+
+container.innerHTML="";
+
+for(var i=0;i<products.length;i++){
+
+var p=products[i];
+
+if(p.stock<=0)continue;
+
+var div=document.createElement("div");
+
+div.className="product";
+div.setAttribute("data-name",p.name);
+div.setAttribute("data-category",p.category);
+
+var image=p.image
+? "<img src='"+p.image+"'>"
+: p.icon;
+
+div.innerHTML=
+
+"<div class='product-image'>"+image+"</div>"+
+
+"<h3>"+escapeHTML(p.name)+"</h3>"+
+
+"<div class='category'>"+escapeHTML(p.category)+"</div>"+
+
+"<div class='price'>"+
+Number(p.price).toLocaleString()+" FCFA"+
+"</div>"+
+
+"<p class='small'>Stock : "+p.stock+"</p>"+
+
+"<button onclick='openProduct("+p.id+")'>👀 Voir</button>"+
+
+"<button onclick='addToCart("+p.id+")'>🛒 Ajouter</button>";
+
+container.appendChild(div);
+
+}
+}
+
+function escapeHTML(text){
+
+return String(text)
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;");
+
+}
+
+
+/* =====================================
+   RECHERCHE
+===================================== */
+
+function searchProducts(){
+
+var text=document.getElementById("search").value.toLowerCase();
+
+var cards=document.querySelectorAll(".product");
+
+for(var i=0;i<cards.length;i++){
+
+var name=cards[i].getAttribute("data-name").toLowerCase();
+
+cards[i].style.display=
+name.indexOf(text)!==-1?"block":"none";
+
+}
+}
+
+
+/* =====================================
+   FILTRE
+===================================== */
+
+function filterProducts(category,button){
+
+var buttons=document.querySelectorAll(".categories button");
+
+for(var i=0;i<buttons.length;i++){
+buttons[i].classList.remove("active");
+}
+
+button.classList.add("active");
+
+var cards=document.querySelectorAll(".product");
+
+for(var j=0;j<cards.length;j++){
+
+var c=cards[j].getAttribute("data-category");
+
+cards[j].style.display=
+(category==="Tous"||c===category)?"block":"none";
+
+}
+}
+
+
+/* =====================================
+   DETAIL PRODUIT
+===================================== */
+
+function openProduct(id){
+
+var p=findProduct(id);
+
+if(!p)return;
+
+var image=p.image
+?"<img src='"+p.image+"' style='width:100%;height:200px;object-fit:cover;border-radius:10px'>"
+:"<div style='font-size:80px;text-align:center'>"+p.icon+"</div>";
+
+var html=
+
+image+
+
+"<h2 style='margin-top:15px'>"+escapeHTML(p.name)+"</h2>"+
+
+"<p class='small'>"+escapeHTML(p.category)+"</p>"+
+
+"<p style='margin:12px 0'>"+escapeHTML(p.description)+"</p>"+
+
+"<h3 style='color:#087f3e'>"+
+Number(p.price).toLocaleString()+" FCFA</h3>"+
+
+"<p style='margin-top:8px'>Stock : "+p.stock+"</p>"+
+
+"<p class='small' style='margin-top:6px'>Vendeur : "+
+escapeHTML(p.seller||"Congo Shop")+
+"</p>"+
+
+"<button class='main-btn' onclick='addToCart("+p.id+");closeModal(\"productModal\")'>"+
+"🛒 Ajouter au panier"+
+"</button>";
+
+document.getElementById("productDetails").innerHTML=html;
+document.getElementById("productModal").style.display="block";
+
+}
+
+
+/* =====================================
+   PANIER
+===================================== */
+
+function addToCart(id){
+
+var p=findProduct(id);
+
+if(!p)return;
+
+if(p.stock<=0){
+alert("Ce produit est en rupture de stock.");
+return;
+}
+
+var found=null;
+
+for(var j=0;j<cart.length;j++){
+
+if(Number(cart[j].id)===Number(id)){
+found=cart[j];
+break;
+}
+
+}
+
+if(found){
+
+if(found.quantity<p.stock){
+found.quantity++;
+}else{
+alert("Stock maximum atteint.");
+return;
+}
+
+}else{
+
+cart.push({
+id:id,
+quantity:1
+});
+
+}
+
+save("congo_cart",cart);
+updateCart();
+
+alert(p.name+" ajouté au panier 🛒");
+
+}
+
+
+function updateCart(){
+
+var count=0;
+var total=0;
+
+for(var i=0;i<cart.length;i++){
+
+var p=findProduct(cart[i].id);
+
+if(p){
+
+if(cart[i].quantity>p.stock){
+cart[i].quantity=p.stock;
+}
+
+count+=cart[i].quantity;
+total+=p.price*cart[i].quantity;
+
+}
+
+}
+
+document.getElementById("cartCount").innerHTML=count;
+document.getElementById("cartTotal").innerHTML=total.toLocaleString();
+document.getElementById("orderTotal").innerHTML=total.toLocaleString();
+
+save("congo_cart",cart);
+
+showCart();
+
+}
+
+
+function findProduct(id){
+
+for(var i=0;i<products.length;i++){
+
+if(Number(products[i].id)===Number(id)){
+return products[i];
+}
+
+}
+
+return null;
+
+}
+
+
+function showCart(){
+
+var box=document.getElementById("cartItems");
+
+if(cart.length===0){
+
+box.innerHTML="<div class='empty'>Ton panier est vide 🛒</div>";
+
+return;
+
+}
+
+var html="";
+
+for(var i=0;i<cart.length;i++){
+
+var item=cart[i];
+var p=findProduct(item.id);
+
+if(!p)continue;
+
+html+=
+
+"<div class='cart-item'>"+
+
+"<div>"+
+"<strong>"+escapeHTML(p.name)+"</strong><br>"+
+"<span class='small'>"+
+Number(p.price).toLocaleString()+
+" FCFA</span>"+
+"</div>"+
+
+"<div class='qty'>"+
+
+"<button onclick='changeQty("+p.id+",-1)'>−</button>"+
+
+"<strong>"+item.quantity+"</strong>"+
+
+"<button onclick='changeQty("+p.id+",1)'>+</button>"+
+
+"<button onclick='removeCart("+p.id+")'>🗑️</button>"+
+
+"</div>"+
+
+"</div>";
+
+}
+
+box.innerHTML=html;
+
+}
+
+
+function changeQty(id,value){
+
+for(var i=0;i<cart.length;i++){
+
+if(Number(cart[i].id)===Number(id)){
+
+var p=findProduct(id);
+
+if(!p)break;
+
+cart[i].quantity+=value;
+
+if(cart[i].quantity>p.stock){
+cart[i].quantity=p.stock;
+}
+
+if(cart[i].quantity<=0){
+cart.splice(i,1);
+}
+
+break;
+
+}
+
+}
+
+save("congo_cart",cart);
+updateCart();
+
+}
+
+
+function removeCart(id){
+
+for(var i=0;i<cart.length;i++){
+
+if(Number(cart[i].id)===Number(id)){
+
+cart.splice(i,1);
+break;
+
+}
+
+}
+
+save("congo_cart",cart);
+updateCart();
+
+}
+
+
+function openCart(){
+
+document.getElementById("cartModal").style.display="block";
+showCart();
+
+}
+
+
+/* =====================================
+   COMPTES
+===================================== */
+
+function openAuth(type){
+
+var html="";
+
+if(type==="register"){
+
+html=
+
+"<h2>✨ Créer un compte</h2>"+
+
+"<div class='form-group'>"+
+"<label>Nom complet</label>"+
+"<input id='registerName' placeholder='Ton nom'>"+
+"</div>"+
+
+"<div class='form-group'>"+
+"<label>Téléphone</label>"+
+"<input id='registerPhone' type='tel' placeholder='06...'>"+
+"</div>"+
+
+"<div class='form-group'>"+
+"<label>Mot de passe</label>"+
+"<input id='registerPassword' type='password' placeholder='Mot de passe'>"+
+"</div>"+
+
+"<div class='form-group'>"+
+"<label>Question de sécurité (pour récupérer ton compte)</label>"+
+"<select id='registerSecurityQuestion'>"+
+"<option value='ville'>Ville de naissance</option>"+
+"<option value='mere'>Prénom de ta mère</option>"+
+"<option value='ecole'>Nom de ta première école</option>"+
+"<option value='surnom'>Ton surnom d'enfance</option>"+
+"</select>"+
+"</div>"+
+
+"<div class='form-group'>"+
+"<label>Réponse</label>"+
+"<input id='registerSecurityAnswer' placeholder='Ta réponse'>"+
+"</div>"+
+
+"<button class='main-btn' onclick='registerUser()'>✨ Créer mon compte</button>"+
+
+"<button class='main-btn secondary' onclick=\"openAuth('login')\">"+
+"J'ai déjà un compte"+
+"</button>";
+
+}else if(type==="forgot"){
+
+html=
+
+"<h2>❓ Mot de passe oublié</h2>"+
+
+"<p class='small' style='margin-bottom:12px'>Entre ton numéro de téléphone pour commencer.</p>"+
+
+"<div class='form-group'>"+
+"<label>Téléphone</label>"+
+"<input id='forgotPhone' type='tel'>"+
+"</div>"+
+
+"<button class='main-btn' onclick='startForgotPassword()'>➡️ Continuer</button>"+
+
+"<button class='main-btn secondary' onclick=\"openAuth('login')\">"+
+"⬅️ Retour à la connexion"+
+"</button>";
+
+}else{
+
+html=
+
+"<h2>🔐 Connexion</h2>"+
+
+"<div class='form-group'>"+
+"<label>Téléphone</label>"+
+"<input id='loginPhone' type='tel'>"+
+"</div>"+
+
+"<div class='form-group'>"+
+"<label>Mot de passe</label>"+
+"<input id='loginPassword' type='password'>"+
+"</div>"+
+
+"<button class='main-btn' onclick='loginUser()'>🔐 Se connecter</button>"+
+
+"<button class='main-btn secondary' onclick=\"openAuth('register')\">"+
+"Créer un compte"+
+"</button>"+
+
+"<button class='main-btn secondary' onclick=\"openAuth('forgot')\">"+
+"❓ Mot de passe oublié ?"+
+"</button>";
+
+}
+
+document.getElementById("authContent").innerHTML=html;
+document.getElementById("authModal").style.display="block";
+
+}
+
+
+function registerUser(){
+
+var name=document.getElementById("registerName").value.trim();
+var phone=document.getElementById("registerPhone").value.trim();
+var password=document.getElementById("registerPassword").value;
+var securityQuestion=document.getElementById("registerSecurityQuestion").value;
+var securityAnswer=document.getElementById("registerSecurityAnswer").value.trim().toLowerCase();
+
+if(!name||!phone||!password||!securityAnswer){
+alert("Remplis tous les champs.");
+return;
+}
+
+if(password.length<4){
+alert("Le mot de passe doit contenir au moins 4 caractères.");
+return;
+}
+
+for(var i=0;i<users.length;i++){
+
+if(users[i].phone===phone){
+alert("Ce numéro possède déjà un compte.");
+return;
+}
+
+}
+
+var user={
+id:Date.now(),
+name:name,
+phone:phone,
+password:password,
+securityQuestion:securityQuestion,
+securityAnswer:securityAnswer,
+role:"Client"
+};
+
+users.push(user);
+currentUser=user;
+
+save("congo_users",users);
+save("congo_current_user",currentUser);
+
+closeModal("authModal");
+
+updateProfile();
+updateSeller();
+
+alert("Compte créé avec succès 🎉");
+}
+
+/* =====================================
+   CONNEXION
+===================================== */
+
+function loginUser(){
+
+var phone=document.getElementById("loginPhone").value.trim();
+var password=document.getElementById("loginPassword").value;
+
+if(!phone||!password){
+alert("Remplis tous les champs.");
+return;
+}
+
+var user=null;
+
+for(var i=0;i<users.length;i++){
+
+if(users[i].phone===phone && users[i].password===password){
+user=users[i];
+break;
+}
+
+}
+
+if(!user){
+alert("Numéro ou mot de passe incorrect.");
+return;
+}
+
+currentUser=user;
+
+save("congo_current_user",currentUser);
+
+closeModal("authModal");
+
+updateProfile();
+updateSeller();
+
+alert("Connexion réussie 👋");
+
+}
+
+
+/* =====================================
+   MOT DE PASSE OUBLIÉ
+===================================== */
+
+function getSecurityQuestionLabel(key){
+
+var labels={
+ville:"Ville de naissance",
+mere:"Prénom de ta mère",
+ecole:"Nom de ta première école",
+surnom:"Ton surnom d'enfance"
+};
+
+return labels[key]||"Question de sécurité";
+
+}
+
+
+function startForgotPassword(){
+
+var phone=document.getElementById("forgotPhone").value.trim();
+
+if(!phone){
+alert("Entre ton numéro de téléphone.");
+return;
+}
+
+var user=null;
+
+for(var i=0;i<users.length;i++){
+
+if(users[i].phone===phone){
+user=users[i];
+break;
+}
+
+}
+
+if(!user){
+alert("Aucun compte trouvé avec ce numéro.");
+return;
+}
+
+if(!user.securityQuestion||!user.securityAnswer){
+alert("Ce compte n'a pas de question de sécurité enregistrée. Crée un nouveau compte ou contacte le support.");
+return;
+}
+
+var questionLabel=getSecurityQuestionLabel(user.securityQuestion);
+
+var html=
+
+"<h2>❓ Mot de passe oublié</h2>"+
+
+"<div class='form-group'>"+
+"<label>"+escapeHTML(questionLabel)+"</label>"+
+"<input id='forgotAnswer' placeholder='Ta réponse'>"+
+"</div>"+
+
+"<div class='form-group'>"+
+"<label>Nouveau mot de passe</label>"+
+"<input id='forgotNewPassword' type='password'>"+
+"</div>"+
+
+"<input type='hidden' id='forgotUserPhone' value='"+escapeHTML(phone)+"'>"+
+
+"<button class='main-btn' onclick='resetPassword()'>💾 Réinitialiser le mot de passe</button>"+
+
+"<button class='main-btn secondary' onclick=\"openAuth('login')\">"+
+"⬅️ Retour à la connexion"+
+"</button>";
+
+document.getElementById("authContent").innerHTML=html;
+
+}
+
+
+function resetPassword(){
+
+var phone=document.getElementById("forgotUserPhone").value;
+var answer=document.getElementById("forgotAnswer").value.trim().toLowerCase();
+var newPassword=document.getElementById("forgotNewPassword").value;
+
+var user=null;
+
+for(var i=0;i<users.length;i++){
+
+if(users[i].phone===phone){
+user=users[i];
+break;
+}
+
+}
+
+if(!user){
+alert("Compte introuvable.");
+return;
+}
+
+if(!answer||answer!==user.securityAnswer){
+alert("Réponse incorrecte.");
+return;
+}
+
+if(!newPassword||newPassword.length<4){
+alert("Le mot de passe doit contenir au moins 4 caractères.");
+return;
+}
+
+user.password=newPassword;
+
+for(var j=0;j<users.length;j++){
+
+if(users[j].phone===phone){
+users[j]=user;
+break;
+}
+
+}
+
+save("congo_users",users);
+
+alert("Mot de passe réinitialisé ✅ Connecte-toi maintenant.");
+
+openAuth("login");
+
+}
+
+
+/* =====================================
+   PROFIL
+===================================== */
+
+function updateProfile(){
+
+var notConnected=document.getElementById("profileNotConnected");
+var connected=document.getElementById("profileConnected");
+
+var headerUser=document.getElementById("headerUser");
+
+if(!currentUser){
+
+notConnected.style.display="block";
+connected.style.display="none";
+headerUser.innerHTML="👤";
+
+return;
+
+}
+
+notConnected.style.display="none";
+connected.style.display="block";
+
+document.getElementById("profileAvatar").innerHTML=
+currentUser.name.charAt(0).toUpperCase();
+
+document.getElementById("profileName").innerHTML=
+escapeHTML(currentUser.name);
+
+document.getElementById("profilePhone").innerHTML=
+"📱 "+escapeHTML(currentUser.phone);
+
+document.getElementById("profileRole").innerHTML=
+"🏷️ "+escapeHTML(currentUser.role);
+
+headerUser.innerHTML="👤 "+escapeHTML(currentUser.name);
+
+showMyOrders();
+
+}
+
+
+function editProfile(){
+
+if(!currentUser)return;
+
+document.getElementById("editName").value=currentUser.name;
+document.getElementById("editPhone").value=currentUser.phone;
+
+document.getElementById("editProfileModal").style.display="block";
+
+}
+
+
+function saveProfile(){
+
+if(!currentUser)return;
+
+var name=document.getElementById("editName").value.trim();
+var phone=document.getElementById("editPhone").value.trim();
+
+if(!name||!phone){
+alert("Remplis tous les champs.");
+return;
+}
+
+currentUser.name=name;
+currentUser.phone=phone;
+
+for(var i=0;i<users.length;i++){
+
+if(users[i].id===currentUser.id){
+
+users[i]=currentUser;
+break;
+
+}
+
+}
+
+save("congo_users",users);
+save("congo_current_user",currentUser);
+
+closeModal("editProfileModal");
+
+updateProfile();
+updateSeller();
+
+alert("Profil mis à jour ✅");
+
+}
+
+
+function becomeSeller(){
+
+if(!currentUser){
+
+openAuth("login");
+return;
+
+}
+
+if(currentUser.role==="Vendeur"){
+
+alert("Tu es déjà vendeur.");
+return;
+
+}
+
+currentUser.role="Vendeur";
+
+for(var i=0;i<users.length;i++){
+
+if(users[i].id===currentUser.id){
+
+users[i]=currentUser;
+break;
+
+}
+
+}
+
+save("congo_users",users);
+save("congo_current_user",currentUser);
+
+updateProfile();
+updateSeller();
+
+alert("Tu es maintenant vendeur 🏪");
+
+}
+
+
+function logout(){
+
+currentUser=null;
+
+save("congo_current_user",null);
+
+updateProfile();
+updateSeller();
+
+showPage("home");
+
+alert("Déconnexion réussie.");
+
+}
+
+
+/* =====================================
+   VENDEUR
+===================================== */
+
+function updateSeller(){
+
+var loginMessage=document.getElementById("sellerLoginMessage");
+var area=document.getElementById("sellerArea");
+
+if(!currentUser){
+
+loginMessage.style.display="block";
+area.style.display="none";
+
+return;
+
+}
+
+loginMessage.style.display="none";
+area.style.display="block";
+
+showSellerProducts();
+showSellerOrders();
+renderSellerDashboard();
+
+}
+
+
+function renderSellerDashboard(){
+
+var box=document.getElementById("sellerDashboard");
+
+if(!currentUser){
+box.innerHTML="";
+return;
+}
+
+var revenue=0;
+var orderCount=0;
+var itemsSold=0;
+var productRevenue={};
+
+for(var i=0;i<orders.length;i++){
+
+var order=orders[i];
+
+if(order.status==="cancelled")continue;
+
+var sellerItems=[];
+
+for(var j=0;j<order.items.length;j++){
+
+var item=order.items[j];
+
+if(item.sellerId===currentUser.id||item.seller===currentUser.name){
+sellerItems.push(item);
+}
+
+}
+
+if(sellerItems.length===0)continue;
+
+orderCount++;
+
+for(var k=0;k<sellerItems.length;k++){
+
+var it=sellerItems[k];
+var lineTotal=it.price*it.quantity;
+
+revenue+=lineTotal;
+itemsSold+=it.quantity;
+
+productRevenue[it.name]=(productRevenue[it.name]||0)+lineTotal;
+
+}
+
+}
+
+var avgOrder=orderCount>0?Math.round(revenue/orderCount):0;
+
+var topProducts=Object.keys(productRevenue).sort(function(a,b){
+return productRevenue[b]-productRevenue[a];
+}).slice(0,3);
+
+var html=
+
+"<div style='display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px'>"+
+
+"<div class='radio-box'><p class='small'>💰 Revenu total</p>"+
+"<h3 style='color:#087f3e'>"+revenue.toLocaleString()+" FCFA</h3></div>"+
+
+"<div class='radio-box'><p class='small'>📦 Commandes</p>"+
+"<h3 style='color:#087f3e'>"+orderCount+"</h3></div>"+
+
+"<div class='radio-box'><p class='small'>🛍️ Articles vendus</p>"+
+"<h3 style='color:#087f3e'>"+itemsSold+"</h3></div>"+
+
+"<div class='radio-box'><p class='small'>📊 Panier moyen</p>"+
+"<h3 style='color:#087f3e'>"+avgOrder.toLocaleString()+" FCFA</h3></div>"+
+
+"</div>";
+
+if(topProducts.length>0){
+
+html+="<p class='small' style='margin-bottom:8px'><strong>🏆 Meilleurs produits</strong></p>";
+
+var maxRevenue=productRevenue[topProducts[0]];
+
+for(var p=0;p<topProducts.length;p++){
+
+var name=topProducts[p];
+var amount=productRevenue[name];
+var pct=maxRevenue>0?Math.round((amount/maxRevenue)*100):0;
+
+html+=
+
+"<div style='margin-bottom:8px'>"+
+
+"<div style='display:flex;justify-content:space-between'>"+
+"<span class='small'>"+escapeHTML(name)+"</span>"+
+"<span class='small'>"+amount.toLocaleString()+" FCFA</span>"+
+"</div>"+
+
+"<div style='background:#eee;border-radius:6px;height:8px;margin-top:3px'>"+
+"<div style='background:#087f3e;border-radius:6px;height:8px;width:"+pct+"%'></div>"+
+"</div>"+
+
+"</div>";
+
+}
+
+}else{
+
+html+="<div class='empty'>Aucune vente pour le moment.</div>";
+
+}
+
+box.innerHTML=html;
+
+}
+
+
+function createProduct(){
+
+if(!currentUser){
+
+alert("Connecte-toi d'abord.");
+return;
+
+}
+
+if(currentUser.role!=="Vendeur"){
+
+alert("Tu dois devenir vendeur.");
+return;
+
+}
+
+var name=document.getElementById("sellerName").value.trim();
+var description=document.getElementById("sellerDescription").value.trim();
+var price=Number(document.getElementById("sellerPrice").value);
+var category=document.getElementById("sellerCategory").value;
+var stock=Number(document.getElementById("sellerStock").value);
+var imageInput=document.getElementById("sellerImage");
+
+if(!name||!description||!price||!stock){
+
+alert("Remplis tous les champs obligatoires.");
+return;
+
+}
+
+var image="";
+
+if(imageInput.files && imageInput.files[0]){
+
+var file=imageInput.files[0];
+
+var reader=new FileReader();
+
+reader.onload=function(e){
+
+finishCreateProduct(
+name,
+description,
+price,
+category,
+stock,
+e.target.result
+);
+
+};
+
+reader.readAsDataURL(file);
+
+}else{
+
+finishCreateProduct(
+name,
+description,
+price,
+category,
+stock,
+""
+);
+
+}
+
+}
+
+
+function finishCreateProduct(name,description,price,category,stock,image){
+
+var product={
+
+id:Date.now(),
+name:name,
+description:description,
+price:price,
+category:category,
+stock:stock,
+seller:currentUser.name,
+sellerId:currentUser.id,
+image:image,
+icon:"🛍️"
+
+};
+
+products.push(product);
+
+save("congo_products",products);
+
+document.getElementById("sellerName").value="";
+document.getElementById("sellerDescription").value="";
+document.getElementById("sellerPrice").value="";
+document.getElementById("sellerStock").value="";
+document.getElementById("sellerImage").value="";
+
+renderProducts();
+showSellerProducts();
+
+alert("Produit publié avec succès 🚀");
+
+}
+
+
+function showSellerProducts(){
+
+var box=document.getElementById("sellerProducts");
+
+if(!currentUser){
+
+box.innerHTML="";
+return;
+
+}
+
+var mine=[];
+
+for(var i=0;i<products.length;i++){
+
+if(
+products[i].sellerId===currentUser.id ||
+products[i].seller===currentUser.name
+){
+
+mine.push(products[i]);
+
+}
+
+}
+
+if(mine.length===0){
+
+box.innerHTML="<div class='empty'>Tu n'as encore aucun produit.</div>";
+return;
+
+}
+
+var html="";
+
+for(var j=0;j<mine.length;j++){
+
+var p=mine[j];
+
+html+=
+
+"<div class='order-card'>"+
+
+"<strong>"+escapeHTML(p.name)+"</strong><br>"+
+
+"<span class='small'>"+
+Number(p.price).toLocaleString()+
+" FCFA · Stock : "+p.stock+
+"</span>"+
+
+"<button class='main-btn edit' onclick='editProduct("+p.id+")'>✏️ Modifier</button>"+
+
+"<button class='main-btn danger' onclick='deleteProduct("+p.id+")'>🗑️ Supprimer</button>"+
+
+"</div>";
+
+}
+
+box.innerHTML=html;
+
+}
+
+
+function editProduct(id){
+
+var p=findProduct(id);
+
+if(!p)return;
+
+var name=prompt("Nom du produit :",p.name);
+
+if(name===null)return;
+
+var price=prompt("Prix FCFA :",p.price);
+
+if(price===null)return;
+
+var stock=prompt("Stock :",p.stock);
+
+if(stock===null)return;
+
+p.name=name.trim();
+p.price=Number(price);
+p.stock=Number(stock);
+
+save("congo_products",products);
+
+renderProducts();
+showSellerProducts();
+
+alert("Produit modifié ✅");
+
+}
+
+
+function deleteProduct(id){
+
+var p=findProduct(id);
+
+if(!p)return;
+
+if(!confirm("Supprimer ce produit ?"))return;
+
+for(var i=0;i<products.length;i++){
+
+if(Number(products[i].id)===Number(id)){
+
+products.splice(i,1);
+break;
+
+}
+
+}
+
+save("congo_products",products);
+
+renderProducts();
+showSellerProducts();
+
+alert("Produit supprimé.");
+
+}
+
+
+/* =====================================
+   COMMANDES
+===================================== */
+
+function openOrder(){
+
+if(cart.length===0){
+
+alert("Ton panier est vide.");
+return;
+
+}
+
+if(!currentUser){
+
+alert("Connecte-toi pour commander.");
+openAuth("login");
+return;
+
+}
+
+document.getElementById("orderName").value=currentUser.name;
+document.getElementById("orderPhone").value=currentUser.phone;
+document.getElementById("paymentReference").value="";
+
+var livraisonRadio=document.querySelector("input[name='payment'][value='livraison']");
+livraisonRadio.checked=true;
+
+updateCart();
+togglePaymentFields();
+
+document.getElementById("orderModal").style.display="block";
+
+}
+
+
+function togglePaymentFields(){
+
+var payment=document.querySelector("input[name='payment']:checked").value;
+var box=document.getElementById("mobileMoneyBox");
+
+box.style.display=payment==="mobile"?"block":"none";
+
+if(payment==="mobile"){
+updateMobileMoneyInstructions();
+}
+
+}
+
+
+function updateMobileMoneyInstructions(){
+
+var operator=document.getElementById("paymentOperator").value;
+var number=MOBILE_MONEY_NUMBERS[operator];
+var operatorName=operator==="airtel"?"Airtel Money":"MTN Mobile Money";
+
+document.getElementById("mobileMoneyInstructions").innerHTML=
+
+"<p class='small'>📲 Envoie le montant total via <strong>"+operatorName+"</strong> au numéro :</p>"+
+
+"<h3 style='color:#087f3e;margin:6px 0'>"+number+"</h3>"+
+
+"<p class='small'>Puis colle ci-dessous la référence reçue par SMS.</p>";
+
+}
+
+
+function confirmOrder(){
+
+if(cart.length===0){
+
+alert("Ton panier est vide.");
+return;
+
+}
+
+var name=document.getElementById("orderName").value.trim();
+var phone=document.getElementById("orderPhone").value.trim();
+var address=document.getElementById("orderAddress").value.trim();
+
+if(!name||!phone||!address){
+
+alert("Remplis tous les champs.");
+return;
+
+}
+
+var payment=document.querySelector(
+"input[name='payment']:checked"
+).value;
+
+var paymentOperator=null;
+var paymentReference=null;
+var paymentStatus="a_la_livraison";
+
+if(payment==="mobile"){
+
+paymentOperator=document.getElementById("paymentOperator").value;
+paymentReference=document.getElementById("paymentReference").value.trim();
+
+if(!paymentReference){
+alert("Indique la référence de ta transaction Mobile Money.");
+return;
+}
+
+paymentStatus="en_attente_verification";
+
+}
+
+var items=[];
+var total=0;
+
+for(var i=0;i<cart.length;i++){
+
+var p=findProduct(cart[i].id);
+
+if(!p)continue;
+
+items.push({
+
+product_id:p.id,
+name:p.name,
+price:p.price,
+quantity:cart[i].quantity,
+seller:p.seller,
+sellerId:p.sellerId||null
+
+});
+
+total+=p.price*cart[i].quantity;
+
+p.stock-=cart[i].quantity;
+
+}
+
+var order={
+
+id:Date.now(),
+orderNumber:"CS-"+Date.now(),
+userId:currentUser.id,
+customerName:name,
+customerPhone:phone,
+address:address,
+payment:payment,
+paymentOperator:paymentOperator,
+paymentReference:paymentReference,
+paymentStatus:paymentStatus,
+items:items,
+total:total,
+status:"pending",
+createdAt:new Date().toISOString()
+
+};
+
+orders.push(order);
+
+save("congo_orders",orders);
+save("congo_products",products);
+
+cart=[];
+
+save("congo_cart",cart);
+
+updateCart();
+renderProducts();
+
+closeModal("orderModal");
+
+document.getElementById("orderNumber").innerHTML=
+"Commande : "+order.orderNumber;
+
+document.getElementById("successModal").style.display="block";
+
+showMyOrders();
+showSellerOrders();
+
+}
+
+
+function showMyOrders(){
+
+var box=document.getElementById("myOrders");
+
+if(!currentUser){
+
+box.innerHTML="";
+return;
+
+}
+
+var mine=[];
+
+for(var i=0;i<orders.length;i++){
+
+if(orders[i].userId===currentUser.id){
+
+mine.push(orders[i]);
+
+}
+
+}
+
+if(mine.length===0){
+
+box.innerHTML="<div class='empty'>Aucune commande.</div>";
+return;
+
+}
+
+var html="";
+
+for(var j=mine.length-1;j>=0;j--){
+
+var o=mine[j];
+
+html+=
+
+"<div class='order-card'>"+
+
+"<strong>"+escapeHTML(o.orderNumber)+"</strong><br>"+
+
+"<span class='small'>"+
+new Date(o.createdAt).toLocaleString()+
+"</span>"+
+
+"<p style='margin-top:8px'>"+
+Number(o.total).toLocaleString()+
+" FCFA</p>"+
+
+"<span class='status'>"+
+escapeHTML(getStatusLabel(o.status))+
+"</span>"+
+
+(o.paymentStatus?
+"<br><span class='status'>"+escapeHTML(getPaymentStatusLabel(o.paymentStatus))+"</span>":"")+
+
+"</div>";
+
+}
+
+box.innerHTML=html;
+
+}
+
+
+function showSellerOrders(){
+
+var box=document.getElementById("sellerOrders");
+
+if(!currentUser){
+
+box.innerHTML="";
+return;
+
+}
+
+var sellerOrders=[];
+
+for(var i=0;i<orders.length;i++){
+
+var order=orders[i];
+
+var contains=false;
+
+for(var j=0;j<order.items.length;j++){
+
+if(
+order.items[j].sellerId===currentUser.id ||
+order.items[j].seller===currentUser.name
+){
+
+contains=true;
+break;
+
+}
+
+}
+
+if(contains){
+sellerOrders.push(order);
+}
+
+}
+
+if(sellerOrders.length===0){
+
+box.innerHTML="<div class='empty'>Aucune commande reçue.</div>";
+return;
+
+}
+
+var html="";
+
+for(var k=sellerOrders.length-1;k>=0;k--){
+
+var o=sellerOrders[k];
+
+html+=
+
+"<div class='order-card'>"+
+
+"<strong>"+escapeHTML(o.orderNumber)+"</strong><br>"+
+
+"<p style='margin-top:7px'>"+
+escapeHTML(o.customerName)+
+"</p>"+
+
+"<p class='small'>"+
+escapeHTML(o.customerPhone)+
+"</p>"+
+
+"<p class='small'>"+
+escapeHTML(o.address)+
+"</p>"+
+
+"<p style='margin-top:8px'>"+
+Number(o.total).toLocaleString()+
+" FCFA</p>"+
+
+"<span class='status'>"+
+escapeHTML(getStatusLabel(o.status))+
+"</span>"+
+
+(o.paymentStatus?
+"<br><span class='status'>"+escapeHTML(getPaymentStatusLabel(o.paymentStatus))+"</span>":"")+
+
+"<button class='main-btn edit' onclick='openOrderStatus("+o.id+")'>"+
+"✏️ Modifier le statut"+
+"</button>"+
+
+(o.paymentStatus==="en_attente_verification"?
+"<button class='main-btn' onclick='verifyPayment("+o.id+")'>✅ Vérifier le paiement</button>":"")+
+
+"</div>";
+
+}
+
+box.innerHTML=html;
+
+}
+
+
+function getStatusLabel(status){
+
+var labels={
+
+pending:"⏳ En attente",
+confirmed:"✅ Confirmée",
+preparation:"👨‍🍳 En préparation",
+shipping:"🚚 En livraison",
+delivered:"📍 Livrée",
+cancelled:"❌ Annulée"
+
+};
+
+return labels[status]||status;
+
+}
+
+
+function getPaymentStatusLabel(status){
+
+var labels={
+
+a_la_livraison:"💵 Paiement à la livraison",
+en_attente_verification:"⏳ Paiement Mobile Money en attente de vérification",
+paye_confirme:"✅ Paiement Mobile Money confirmé"
+
+};
+
+return labels[status]||"";
+
+}
+
+
+function verifyPayment(id){
+
+for(var i=0;i<orders.length;i++){
+
+if(Number(orders[i].id)===Number(id)){
+
+orders[i].paymentStatus="paye_confirme";
+break;
+
+}
+
+}
+
+save("congo_orders",orders);
+
+showSellerOrders();
+showMyOrders();
+renderSellerDashboard();
+
+alert("Paiement marqué comme confirmé ✅");
+
+}
+
+
+function openOrderStatus(id){
+
+var order=null;
+
+for(var i=0;i<orders.length;i++){
+
+if(Number(orders[i].id)===Number(id)){
+
+order=orders[i];
+break;
+
+}
+
+}
+
+if(!order)return;
+
+document.getElementById("statusOrderId").value=order.id;
+document.getElementById("newOrderStatus").value=order.status;
+
+document.getElementById("orderStatusModal").style.display="block";
+
+}
+
+
+function saveOrderStatus(){
+
+var id=Number(
+document.getElementById("statusOrderId").value
+);
+
+var status=document.getElementById("newOrderStatus").value;
+
+for(var i=0;i<orders.length;i++){
+
+if(Number(orders[i].id)===id){
+
+orders[i].status=status;
+break;
+
+}
+
+}
+
+save("congo_orders",orders);
+
+closeModal("orderStatusModal");
+
+showSellerOrders();
+showMyOrders();
+renderSellerDashboard();
+
+alert("Statut mis à jour ✅");
+
+}
+
+
+/* =====================================
+   MODALES
+===================================== */
+
+function closeModal(id){
+
+document.getElementById(id).style.display="none";
+
+}
+
+
+/* =====================================
+   DÉMARRAGE
+===================================== */
+
+renderProducts();
+updateCart();
+updateProfile();
+updateSeller();
+
+</script>
+
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+</script>
+</body>
+</html>
